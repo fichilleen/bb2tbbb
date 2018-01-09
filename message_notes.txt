@@ -1,0 +1,35 @@
+/*
+
+  USER pauric * localhost pauric
+     Parameters: <username> <hostname> <servername> <realname>
+  NICK <mynick>
+  JOIN #yo
+  :pauric!pauric@i.love.debian.org JOIN :#yo
+
+  ^ The above messages are client side, so we don't need handlers for them
+
+
+  :hybrid8.debian.local MODE #yo +nt
+  :hybrid8.debian.local 353 pauric = #yo :@pauric
+  :hybrid8.debian.local 366 pauric #yo :End of /NAMES list.
+  :localghost!pauric@i.love.debian.org JOIN :#yo
+
+  ^ We'll want handlers for these, if we want to keep a local state of users in channels
+
+
+  :localghost!pauric@i.love.debian.org PRIVMSG #yo :hello pals (in channel)
+  PING :hybrid8.debian.local
+  PONG
+  PRIVMSG #yo :this is my response
+  :localghost!pauric@i.love.debian.org PRIVMSG #yo :ACTION does /me action << ^A
+  :localghost!pauric@i.love.debian.org PRIVMSG pauric :pm from real user
+  PRIVMSG localghost :pm to real user
+  :localghost!pauric@i.love.debian.org PART #yo
+  ERROR :Closing Link: i.love.debian.org (Ping timeout: 180 seconds)
+
+
+
+  On connect trigger, sending User and Nick messages - they never need to be pattern matched
+
+
+ */
