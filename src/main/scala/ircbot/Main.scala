@@ -4,19 +4,20 @@ import java.net.InetSocketAddress
 
 import akka.actor._
 import akka.util.ByteString
+import com.typesafe.config.ConfigFactory
 
-// In the future, this will be populated from config and made at init time
-// Note that hostname and domainname are normally ignored by the IRC server
+import scala.collection.JavaConverters._
+
 // when the USER command comes from a directly connected client
-case class RegistrationDetails(nick: String, username: String, hostname: String, domainName: String, realName: String)
+case class RegistrationDetails(nick: String, name: String)
 case class ChannelsOnConnect(channels: Seq[String])
 
 
 object BuildLogin {
   // TODO: Once config is done, we can just take config params for this
-  def buildRegistration(nick: String, user: String, host: String, domain: String, realName: String): Seq[ByteString] = {
+  def buildRegistration(nick: String, name: String): Seq[ByteString] = {
     Seq(
-      ByteString(s"USER $user $host $domain $realName\n"),
+      ByteString(s"USER $name * localhost $name\n"),
       ByteString(s"NICK $nick\n")
     )
   }
@@ -27,12 +28,21 @@ object BuildLogin {
 }
 
 object Main extends App {
+
+  val conf = ConfigFactory.load()
+
   val initialMessages =
-    BuildLogin.buildRegistration("test_bot", "username", "*", "localhost", "realname") ++
-    BuildLogin.buildJoins(Array("#test_channel", "#another_channel"))
+    BuildLogin.buildRegistration(
+      conf.getString("botconfig.bot_nick"),
+      conf.getString("botconfig.bot_name")
+    ) ++
+    BuildLogin.buildJoins(conf.getStringList("botconfig.join_channels").asScala)
 
   val system = ActorSystem("actors")
-  val socketOptions = new InetSocketAddress("localhost", 6669)
+  val socketOptions = new InetSocketAddress(
+    conf.getString("botconfig.server_host"),
+    conf.getInt("botconfig.server_port")
+  )
   //val responseActor: ActorRef = system.actorOf(MessageBuilder.props())
   val botActor: ActorRef = system.actorOf(Bot.props())
   val _ = system.actorOf(SocketClient.props(socketOptions, initialMessages, botActor), name = "SocketActor")

@@ -3,17 +3,20 @@ package ircbot
 import akka.actor._
 import akka.io.{IO, Tcp}
 import java.net.InetSocketAddress
+
 import akka.util.ByteString
+import com.typesafe.config.Config
 
 object SocketClient {
-  def props(remote: InetSocketAddress, initMessages: Seq[ByteString], replies: ActorRef) =
-    Props(classOf[SocketClient], remote, initMessages, replies)
+  def props(remote: InetSocketAddress, config: Config, initMessages: Seq[ByteString], replies: ActorRef) =
+    Props(classOf[SocketClient], remote, config, initMessages, replies)
 }
 
 // Largely copied from https://doc.akka.io/docs/akka/current/io-tcp.html?language=scala#using-tcp
 
 class SocketClient(
                     remote: InetSocketAddress,
+                    config: Config,
                     initMessages: Seq[ByteString],
                     listener: ActorRef)
   extends Actor {
@@ -31,8 +34,6 @@ class SocketClient(
       listener ! c
       val connection = sender()
       connection ! Register(self)
-      // TODO: Hardcoded here for initial testing
-      // TODO: Take a list of initial commands to send
       initMessages.foreach(connection ! Write(_))
       context become {
         case data: ByteString ⇒
@@ -42,7 +43,7 @@ class SocketClient(
           // O/S buffer was full
           listener ! "write failed"
         case Received(data) ⇒
-          DecorateMessage(data).foreach(listener ! _)
+          DecorateMessage(context.self, config, data).foreach(listener ! _)
         case "close" ⇒
           connection ! Close
         case _: ConnectionClosed ⇒
