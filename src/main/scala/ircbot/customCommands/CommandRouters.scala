@@ -2,7 +2,7 @@ package ircbot.customCommands
 
 import akka.actor.{Actor, ActorRef, Props}
 import akka.routing.Router
-import ircbot.customCommands.privMsgCommands.respondToHello
+import ircbot.customCommands.privMsgCommands.{AnswerVersionRequest, TimeGameActor, respondToHello}
 import ircbot.{MessageBuilder, SystemMessage, UserMessage}
 
 object CommandRouters{
@@ -12,7 +12,9 @@ object CommandRouters{
 class CommandRouters() extends Actor {
 
   val privMsgActors: Seq[Props] = Seq (
-      Props[respondToHello]
+      Props[respondToHello],
+      Props[AnswerVersionRequest],
+      Props[TimeGameActor]
     // More
     // To
     // Come
@@ -22,7 +24,7 @@ class CommandRouters() extends Actor {
 
   override def receive: PartialFunction[Any, Unit] = {
     case um: UserMessage => privMsgRouter.route(um, context.self)
-    case sm: SystemMessage => sysMsgActor ! sm
+    case sm: SystemMessage =>
+      sysMsgActor ! sm
   }
-
 }

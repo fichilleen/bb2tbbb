@@ -5,6 +5,7 @@ import ircbot.models.{MessageTimeFactory, MetaMessage}
 import org.scalatest._
 
 class MessageTypeParserSpec extends FlatSpec with Matchers {
+  // TODO: Mock actors and config
   val system = ActorSystem("spec-actors")
   val responseActor: ActorRef = system.actorOf(MessageBuilder.props())
   val genericMetaMessage = MetaMessage(responseActor, MessageTimeFactory(), "x")

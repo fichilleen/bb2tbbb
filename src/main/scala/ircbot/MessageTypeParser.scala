@@ -19,6 +19,7 @@ sealed trait UserMessage extends IrcMessage {
 sealed trait SystemMessage extends IrcMessage
 
 case class PingFromServer(metaMessage: MetaMessage, rawMessage: String) extends SystemMessage
+case class ServerAuthRequest(metaMessage: MetaMessage, rawMessage: String) extends SystemMessage
 case class UnknownMessage(metaMessage: MetaMessage, rawMessage: String) extends SystemMessage
 case class BotJoinsChannel(
                             metaMessage: MetaMessage,
@@ -41,10 +42,10 @@ case class ReceiveMessage(
 
 object MessageTypeParser {
 
-  /* TODO: Think about how to handle cases where we want the same behaviour for a message from a channel or user */
-  private val messageFromChan = """(^:((\w*?)!(\w*?)@(.*?)) PRIVMSG (#\w*) :(.*)$)""".r
-  private val messageFromUser = """(^:((\w*?)!(\w*?)@(.*?)) PRIVMSG \w* :(.*)$)""".r
+  private val messageFromChan = """(^:((\w*?)!.*(\w*?)@(.*?)) PRIVMSG (#\w*) :(.*)$)""".r
+  private val messageFromUser = """(^:((\w*?)!.*(\w*?)@(.*?)) PRIVMSG \w* :(.*)$)""".r
   private val channelNickList = """(^:.*? 353 .*? = (#\w*) :([@+]?.*)$)""".r
+  private val serverAuthRequest = """(^:.*? NOTICE AUTH.*)""".r
   private val pingFromServer = """(^PING.*$)""".r
 
   def apply(mm: MetaMessage, serverMessage: String): IrcMessage = serverMessage match {
@@ -52,8 +53,11 @@ object MessageTypeParser {
       ReceiveMessage(mm, raw, hostmask, nick, realname, userhost, Some(chan), content)
     case messageFromUser(raw, hostmask, nick, realname, userhost, content) =>
       ReceiveMessage(mm, raw, hostmask, nick, realname, userhost, None, content)
-    case pingFromServer(p) => PingFromServer(mm, p)
-    case channelNickList(r, c, nl) => BotJoinsChannel(mm, r, c, nl)
+    case pingFromServer(p) =>
+      PingFromServer(mm, p)
+    case channelNickList(r, c, nl) =>
+      BotJoinsChannel(mm, r, c, nl)
+    case serverAuthRequest(x) => ServerAuthRequest(mm, x)
     case x => UnknownMessage(mm, x)
   }
 }

@@ -7,12 +7,13 @@ x 2018-01-13 Add config
 x 2018-01-13 Unapply for metameta and normal messages
 x 2018-01-13 Decide how custom commands should treat chan msgs vs DMs
 x 2018-01-14 Ability to filter based on pattern matching (parent class) - can we regex this as a matcher?
+x 2018-03-18 Add SQLite Singleton
+x 2018-03-18 Implement "first!"
 
 (B) Move message types to independent place
 (B) Add more tests, and mocks
-(B) Add SQLite Singleton
 (B) Look at handling SSL (and allowing bad certs) - https://stackoverflow.com/questions/43161047/how-to-open-tcp-connection-with-tls-in-scala-using-akka
+(B) Add better logging
 
 (C) Find out how to restart the socket with timeouts and retries if it goes down
-(C) Implement "first!"
 (C) Implement the rest of butt_bott's functionality (that we care about at least)

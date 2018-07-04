@@ -18,7 +18,7 @@ class MessageBuilderSpec extends FlatSpec with Matchers {
   "A PingFromServer instance" should "send back a Pong message" in {
     val message = PingFromServer(genericMetaMessage, "PING ABC")
     val r = Await.result(responseActor ? message, timeout.duration)
-    r shouldBe Pong()
+    r shouldBe Pong("PING ABC")
   }
 
   // TODO: Remove this test later. The bot greets on channel join as a test, it would be obnoxious in a real channel

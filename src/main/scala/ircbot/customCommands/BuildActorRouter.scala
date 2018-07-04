@@ -7,8 +7,7 @@ object BuildActorRouter extends {
 
   private def buildBroadcastRouter(propsList: Seq[Props], ac: ActorContext): Router = {
     {
-      val routees = propsList
-      val rr = routees.map(buildRoutees(_, ac)).toIndexedSeq
+      val rr = propsList.map(buildRoutees(_, ac)).toIndexedSeq
       Router(BroadcastRoutingLogic(), rr)
     }
   }

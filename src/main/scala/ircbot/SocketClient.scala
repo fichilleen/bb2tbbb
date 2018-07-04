@@ -1,25 +1,23 @@
 package ircbot
 
-import akka.actor._
-import akka.io.{IO, Tcp}
 import java.net.InetSocketAddress
 
+import akka.actor._
+import akka.io.{IO, Tcp}
 import akka.util.ByteString
-import com.typesafe.config.Config
+import ircbot.models.MessageTimeFactory
 
 object SocketClient {
-  def props(remote: InetSocketAddress, config: Config, initMessages: Seq[ByteString], replies: ActorRef) =
-    Props(classOf[SocketClient], remote, config, initMessages, replies)
+  def props(remote: InetSocketAddress,
+            replies: ActorRef) =
+    Props(classOf[SocketClient], remote, replies)
 }
 
 // Largely copied from https://doc.akka.io/docs/akka/current/io-tcp.html?language=scala#using-tcp
 
-class SocketClient(
-                    remote: InetSocketAddress,
-                    config: Config,
-                    initMessages: Seq[ByteString],
-                    listener: ActorRef)
-  extends Actor {
+class SocketClient(remote: InetSocketAddress,
+                   listener: ActorRef)
+    extends Actor {
 
   import Tcp._
   import context.system
@@ -30,26 +28,35 @@ class SocketClient(
       listener ! "connect failed"
       context stop self
 
-    case c @ Connected(remote, local) ⇒
+    // TODO: SSL
+    case c @ Connected(remote_host, _) ⇒
+
       listener ! c
+      println(s"Connected to ${remote_host.getHostString}")
       val connection = sender()
       connection ! Register(self)
-      initMessages.foreach(connection ! Write(_))
+
       context become {
         case data: ByteString ⇒
-          println(s"Wrote ${data.utf8String}")
+          println(s"Wrote ${MessageTimeFactory.apply().timeString} ${data.utf8String}")
           connection ! Write(data)
+
         case CommandFailed(_: Write) ⇒
           // O/S buffer was full
           listener ! "write failed"
+
         case Received(data) ⇒
-          DecorateMessage(context.self, config, data).foreach(listener ! _)
+          DecorateMessage(context.self, data).foreach(listener ! _)
+
         case "close" ⇒
+          println("Hit case 'close'")
           connection ! Close
+
         case _: ConnectionClosed ⇒
+          // TODO: Incremental backoff for reconnect, and eventually kill the process
+          println("Hit case _")
           listener ! "connection closed"
           context stop self
       }
   }
 }
-
