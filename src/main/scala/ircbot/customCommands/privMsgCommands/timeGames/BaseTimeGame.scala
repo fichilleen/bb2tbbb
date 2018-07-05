@@ -16,6 +16,8 @@ trait TimeGameResult extends TimeGameResponse {
 }
 
 case class Unavailable() extends TimeGameResponse
+case class TooEarly() extends Unavailable
+case class TooLate() extends Unavailable
 case class UserScores(nick: String, timeStamp: MessageTime) extends TimeGameResult
 case class AlreadySet(nick: String, timeStamp: MessageTime) extends TimeGameResult
 
@@ -31,6 +33,8 @@ abstract class BaseTimeGame {
   protected val tableQuery: TableQuery[TimeGameTable]
   protected def response(nick: String, res: TimeGameResponse): String
   protected def precondition(user: String): Boolean
+  protected def tooEarly: Boolean = false
+  protected def tooLate: Boolean = false
 
   // This is super high, but sqlite can be slow for the first query
   // TODO: It should probably be a global variable
@@ -60,8 +64,12 @@ abstract class BaseTimeGame {
         case Some(f: TimeGameResult) => f
         case None =>
           if (precondition(user)) {
-            Future.successful(setResult(user, timestamp.epochMillis))
-            UserScores(user, timestamp)
+            if (tooEarly) TooEarly()
+            else if (tooLate) TooLate()
+            else {
+              Future.successful(setResult(user, timestamp.epochMillis))
+              UserScores(user, timestamp)
+            }
           }
           else Unavailable()
       }
