@@ -64,14 +64,12 @@ abstract class BaseTimeGame {
       getResult match {
         case Some(f: TimeGameResult) => f
         case None =>
-          if (precondition(user)) {
-            if (tooEarly) TooEarly()
-            else if (tooLate) TooLate()
-            else {
+          if (tooEarly) TooEarly()
+          else if (tooLate) TooLate()
+          else if (precondition(user)){
               Future.successful(setResult(user, timestamp.epochMillis))
               UserScores(user, timestamp)
             }
-          }
           else Blocked()
       }
     )

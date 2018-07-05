@@ -23,7 +23,7 @@ class BlazeIt extends BaseTimeGame {
         s"$u was blazed today at ${t.timeString}! Your attempt was at $nowTimestring"
       case TooEarly() => "Only at 16:20"
       case TooLate() => "No one got blazed today ;("
-      case _ => "Uh oh, something went fucky wucky"
+      case x => s"Uh oh, something went fucky wucky - $x"
     }
   }
 }
