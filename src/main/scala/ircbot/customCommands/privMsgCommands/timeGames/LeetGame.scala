@@ -16,7 +16,7 @@ class LeetGame extends BaseTimeGame {
       case UserScores(u, t) =>
         s"Congratulations on your leet 1337 $u, at ${t.timeString}! You now have ${countByNick(u)}"
       case AlreadySet(u, t) =>
-        s"1337 today was $u, at ${t.timeString}!"
+        s"1337 today was $u, at ${t.timeString}! Your attempt was at ${t.timeString}"
       case Unavailable() => "Only at 13:37"
       case _ => "Uh oh, something went fucky wucky"
     }

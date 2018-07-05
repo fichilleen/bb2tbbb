@@ -16,7 +16,7 @@ class BlazeIt extends BaseTimeGame {
       case UserScores(u, t) =>
         s"$u smooooookes weed e'ry day! ${t.timeString} You've been blazed ${countByNick(u)} times"
       case AlreadySet(u, t) =>
-        s"$u was blazed today at ${t.timeString}!"
+        s"$u was blazed today at ${t.timeString}! Your attempt was at ${t.timeString}"
       case Unavailable() => "Only at 16:20"
       case _ => "Uh oh, something went fucky wucky"
     }
