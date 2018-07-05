@@ -36,6 +36,8 @@ abstract class BaseTimeGame {
   // TODO: It should probably be a global variable
   private val TIMEOUT = 500.milliseconds
 
+  protected def nowTimestring: String = MessageTimeFactory.apply().timeString
+
   protected def queryFilter: Query[TimeGameTable, (String, Long), Seq] = {
     tableQuery.filter(_.timestamp > Timestamps.midnight())
   }

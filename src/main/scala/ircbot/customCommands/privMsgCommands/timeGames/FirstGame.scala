@@ -14,7 +14,7 @@ class FirstGame extends BaseTimeGame {
       case UserScores(u, t) =>
         s"Congratulations on your first $u, at ${t.timeString}! You now have ${countByNick(u)}"
       case AlreadySet(u, t) =>
-        s"First today was $u, at ${t.timeString}!"
+        s"First today was $u, at ${t.timeString}! Your attempt was at $nowTimestring"
       case Unavailable() => "Not until 04:00"
       case _ => "Uh oh, something went fucky wucky"
     }
