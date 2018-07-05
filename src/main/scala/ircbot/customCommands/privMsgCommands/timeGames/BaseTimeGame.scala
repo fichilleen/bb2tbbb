@@ -10,12 +10,13 @@ import scala.concurrent.{Await, Future}
 import scala.concurrent.ExecutionContext.Implicits.global
 
 trait TimeGameResponse
+trait Unavailable extends TimeGameResponse
 trait TimeGameResult extends TimeGameResponse {
   def nick: String
   def timeStamp: MessageTime
 }
 
-case class Unavailable() extends TimeGameResponse
+case class Blocked() extends Unavailable
 case class TooEarly() extends Unavailable
 case class TooLate() extends Unavailable
 case class UserScores(nick: String, timeStamp: MessageTime) extends TimeGameResult
@@ -71,7 +72,7 @@ abstract class BaseTimeGame {
               UserScores(user, timestamp)
             }
           }
-          else Unavailable()
+          else Blocked()
       }
     )
   }

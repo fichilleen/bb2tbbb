@@ -22,7 +22,7 @@ class SecondGame(firstGame: FirstGame)
         s"Congratulations on your shitty first I guess $u, at ${t.timeString}. You now have ${countByNick(u)}"
       case AlreadySet(u, t) =>
         s"Second today was $u, at ${t.timeString}! Your attempt was at $nowTimestring"
-      case Unavailable() =>
+      case Blocked() =>
         s"$nick: https://pauric.eu/captcha/notyet.gif"
       case _ => "Uh oh, something went fucky wucky"
     }
