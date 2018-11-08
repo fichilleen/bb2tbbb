@@ -19,11 +19,14 @@ class HatTricks(firstGame: FirstGame, leetGame: LeetGame, blazeIt: BlazeIt) exte
     }
   }
 
-  override def response(nick: String, res: TimeGameResponse): String = {
+  override def response(nick: String, res: TimeGameResponse): Seq[String] = {
     res match {
       case UserScores(u, _) =>
-        s"gooooooooooooaaaaaaaaaaaaaaallllllllllllllll! $u has ${countByNick(u)} hat tricks!"
-      case _ => ""
+        Seq(
+          s"gooooooooooooaaaaaaaaaaaaaaallllllllllllllll! $u has ${countByNick(u)} hat tricks!",
+          """\o\"""
+        )
+      case _ => Seq.empty[String]
     }
   }
 }

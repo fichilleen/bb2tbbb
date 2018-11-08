@@ -16,15 +16,17 @@ class SecondGame(firstGame: FirstGame)
     }
   }
 
-  override def response(nick: String, res: TimeGameResponse): String = {
-    res match {
-      case UserScores(u, t) =>
-        s"Congratulations on your shitty first I guess $u, at ${t.timeString}. You now have ${countByNick(u)}"
-      case AlreadySet(u, t) =>
-        s"Second today was $u, at ${t.timeString}! Your attempt was at $nowTimestring"
-      case Blocked() =>
-        s"$nick: https://pauric.eu/captcha/notyet.gif"
-      case _ => "Uh oh, something went fucky wucky"
-    }
+  override def response(nick: String, res: TimeGameResponse): Seq[String] = {
+    Seq(
+      res match {
+        case UserScores(u, t) =>
+          s"Congratulations on your shitty first I guess $u, at ${t.timeString}. You now have ${countByNick(u)}"
+        case AlreadySet(u, t) =>
+          s"Second today was $u, at ${t.timeString}! Your attempt was at $nowTimestring"
+        case Blocked() =>
+          s"$nick: https://pauric.eu/captcha/notyet.gif"
+        case _ => "Uh oh, something went fucky wucky"
+      }
+    )
   }
 }

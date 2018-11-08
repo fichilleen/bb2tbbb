@@ -32,6 +32,7 @@ class respondToHello extends Actor {
         case "COCK!" => "8===============D"
 
         // Nick specific japes
+        case "420thingyit!" => "thingy today was thingy! It's always thingy!"
         case "ack_!" => DuplicatedResponses.ack
         case "ack!" => DuplicatedResponses.ack
         case "aga!" => DuplicatedResponses.aga
@@ -41,9 +42,11 @@ class respondToHello extends Actor {
         case "fado!" => "<fado> i also imagine web designers calling themselves developers"
         case "fich!" => "<fado> fuelled by beer and spite."
         case "haize!" => "2016-02-05 - Never forget the day haize accidently ran an open proxy"
+        case "kry0!" => "<kry0> i find a good ratio is 10 lines of code -> 1 line of coke"
         case "rooboy!" => "<rooboy> just saw a plane with a really dark chemtrail.. that means they're spraying the *really* bad stuff, yeah ?"
-        case "420thingyit!" => "thingy today was thingy! It's always thingy!"
         case "thingys!" => s"thingy has ${Random.nextInt(1500)} 420thingyits!"
+        case "wave!" => """\o\"""
+        case "/o/" => """\o/"""
         case _ => ""
       }
       if(!responseString.isEmpty) socket ! PrivMsg(channel, responseString).message

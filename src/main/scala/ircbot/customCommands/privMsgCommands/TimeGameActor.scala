@@ -26,27 +26,27 @@ class TimeGameActor extends Actor {
           // TODO: These could be case insensitive regex
 
         case "first!" =>
-          Seq(first.trigger(nick, time))
+          first.trigger(nick, time)
         case "firsts!" =>
           first.getCountAsStringSeq
 
         case "second!" =>
-          Seq(second.trigger(nick, time))
+          second.trigger(nick, time)
         case "seconds!" =>
           second.getCountAsStringSeq
 
         case "1337!" =>
-          Seq(leet.trigger(nick, time))
+          leet.trigger(nick, time)
         case "1337s!" =>
           leet.getCountAsStringSeq
 
         case "420haizeit!" =>
-          Seq(haize.trigger(nick, time))
+          haize.trigger(nick, time)
         case "haizes!" =>
           haize.getCountAsStringSeq
 
         case "420blazeit!" =>
-          Seq(blaze.trigger(nick, time)) ++ Seq(hatTrick.trigger(nick, time))
+          blaze.trigger(nick, time) ++ hatTrick.trigger(nick, time)
         case "420s!" =>
           blaze.getCountAsStringSeq
         case "hat tricks!" =>

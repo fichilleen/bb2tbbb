@@ -32,7 +32,7 @@ class TimeGameTable(tag: Tag, tableName: String)
 
 abstract class BaseTimeGame {
   protected val tableQuery: TableQuery[TimeGameTable]
-  protected def response(nick: String, res: TimeGameResponse): String
+  protected def response(nick: String, res: TimeGameResponse): Seq[String]
   protected def precondition(user: String): Boolean
   protected def tooEarly: Boolean = false
   protected def tooLate: Boolean = false
@@ -59,7 +59,7 @@ abstract class BaseTimeGame {
     }.sortBy(_._2.desc)
   }
 
-  def trigger(user: String, timestamp: MessageTime): String = {
+  def trigger(user: String, timestamp: MessageTime): Seq[String] = {
     response(user,
       getResult match {
         case Some(f: TimeGameResult) => f
