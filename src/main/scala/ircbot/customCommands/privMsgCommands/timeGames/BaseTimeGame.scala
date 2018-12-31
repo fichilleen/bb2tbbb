@@ -47,14 +47,22 @@ abstract class BaseTimeGame {
     tableQuery.filter(_.timestamp > Timestamps.midnight())
   }
 
-  def countByNick(nick: String): Int = {
-    val q = tableQuery.filter(_.name === nick).length.result
-    q.statements.foreach(println)
-    Await.result(DbHandler.db.run(q), TIMEOUT)
+  def countByNick(nick: String, thisYear: Boolean = true): Int = {
+    val q = thisYear match {
+      case true => tableQuery.filter(_.timestamp > Timestamps.currentYear())
+      case false => tableQuery
+    }
+    val e = q.filter(_.name === nick).length.result
+    e.statements.foreach(println)
+    Await.result(DbHandler.db.run(e), TIMEOUT)
   }
 
-  def countEveryone(): Query[(Rep[String], Rep[Int]), (String, Int), Seq] = {
-    tableQuery.groupBy(_.name).map{
+  def countEveryone(thisYear: Boolean = true): Query[(Rep[String], Rep[Int]), (String, Int), Seq] = {
+    val q = thisYear match {
+      case true => tableQuery.filter(_.timestamp > Timestamps.currentYear())
+      case false => tableQuery
+    }
+    q.groupBy(_.name).map{
       case (s, res) =>  s -> res.length
     }.sortBy(_._2.desc)
   }
@@ -75,14 +83,14 @@ abstract class BaseTimeGame {
     )
   }
 
-  def getCount: Seq[(String, Int)] = {
-    val q = countEveryone().result
+  def getCount(thisYear: Boolean = true): Seq[(String, Int)] = {
+    val q = countEveryone(thisYear).result
     q.statements.foreach(println)
     Await.result(DbHandler.db.run(q), TIMEOUT)
   }
 
-  def getCountAsStringSeq: Seq[String] = {
-    getCount.map {
+  def getCountAsStringSeq(thisYear: Boolean = true): Seq[String] = {
+    getCount(thisYear).map {
       case (u, c) =>
         s"$u has $c"
     }

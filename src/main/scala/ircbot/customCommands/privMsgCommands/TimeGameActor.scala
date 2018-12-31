@@ -28,29 +28,29 @@ class TimeGameActor extends Actor {
         case "first!" =>
           first.trigger(nick, time)
         case "firsts!" =>
-          first.getCountAsStringSeq
+          first.getCountAsStringSeq()
 
         case "second!" =>
           second.trigger(nick, time)
         case "seconds!" =>
-          second.getCountAsStringSeq
+          second.getCountAsStringSeq()
 
         case "1337!" =>
           leet.trigger(nick, time)
         case "1337s!" =>
-          leet.getCountAsStringSeq
+          leet.getCountAsStringSeq()
 
         case "420haizeit!" =>
           haize.trigger(nick, time)
         case "haizes!" =>
-          haize.getCountAsStringSeq
+          haize.getCountAsStringSeq()
 
         case "420blazeit!" =>
           blaze.trigger(nick, time) ++ hatTrick.trigger(nick, time)
         case "420s!" =>
-          blaze.getCountAsStringSeq
+          blaze.getCountAsStringSeq()
         case "hat tricks!" =>
-          hatTrick.getCountAsStringSeq
+          hatTrick.getCountAsStringSeq(thisYear = false)
 
         case _ =>
           println("no match")

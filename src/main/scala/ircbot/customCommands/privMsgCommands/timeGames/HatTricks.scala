@@ -23,7 +23,7 @@ class HatTricks(firstGame: FirstGame, leetGame: LeetGame, blazeIt: BlazeIt) exte
     res match {
       case UserScores(u, _) =>
         Seq(
-          s"gooooooooooooaaaaaaaaaaaaaaallllllllllllllll! $u has ${countByNick(u)} hat tricks!",
+          s"gooooooooooooaaaaaaaaaaaaaaallllllllllllllll! $u has ${countByNick(u, thisYear = false)} hat tricks!",
           """\o\"""
         )
       case _ => Seq.empty[String]
