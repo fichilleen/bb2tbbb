@@ -49,4 +49,14 @@ object Timestamps {
     date.set(Calendar.MILLISECOND, 0)
     date.getTimeInMillis
   }
+
+  def currentYear(): Long = {
+    val date = new GregorianCalendar(tz)
+    date.set(Calendar.DAY_OF_YEAR, 1)
+    date.set(Calendar.HOUR_OF_DAY, 0)
+    date.set(Calendar.MINUTE, 0)
+    date.set(Calendar.SECOND, 0)
+    date.set(Calendar.MILLISECOND, 0)
+    date.getTimeInMillis
+  }
 }

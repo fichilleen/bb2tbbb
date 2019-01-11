@@ -7,7 +7,7 @@ object AnswerVersionRequest {def props() = Props(classOf[respondToHello])}
 
 class AnswerVersionRequest extends Actor {
   override def receive: PartialFunction[Any, Unit] = {
-    case ReceiveMessage(mm, _, _, nick, _, _, None, "VERSION") =>
-      mm.socketActor ! PrivMsg(nick, s"bb2tbbb").message
+    case ReceiveMessage(mm, _, luser, None, "VERSION") =>
+      mm.socketActor ! PrivMsg(luser.nick, s"bb2tbbb").message
   }
 }

@@ -2,6 +2,8 @@ package ircbot
 
 import ircbot.models.MetaMessage
 
+case class Luser(hostMask: String, nick: String, name: String, host: String)
+
 sealed trait IrcMessage {
   def metaMessage: MetaMessage
   def rawMessage: String
@@ -9,10 +11,7 @@ sealed trait IrcMessage {
 
 sealed trait UserMessage extends IrcMessage {
   def metaMessage: MetaMessage
-  def hostMaskFrom: String
-  def nickFrom: String
-  def nameFrom: String
-  def hostFrom: String
+  def luser: Luser
   def content: String
 }
 
@@ -22,23 +21,20 @@ case class PingFromServer(metaMessage: MetaMessage, rawMessage: String) extends 
 case class ServerAuthRequest(metaMessage: MetaMessage, rawMessage: String) extends SystemMessage
 case class UnknownMessage(metaMessage: MetaMessage, rawMessage: String) extends SystemMessage
 case class BotJoinsChannel(
-                            metaMessage: MetaMessage,
-                            rawMessage: String,
-                            channel: String,
-                            nickList: String
-                          ) extends SystemMessage
+  metaMessage: MetaMessage,
+  rawMessage: String,
+  channel: String,
+  nickList: String
+) extends SystemMessage
 
 
 case class ReceiveMessage(
-                                   metaMessage: MetaMessage,
-                                   rawMessage: String,
-                                   hostMaskFrom: String,
-                                   nickFrom: String,
-                                   nameFrom: String,
-                                   hostFrom: String,
-                                   inChannel: Option[String],
-                                   content: String
-                                 ) extends UserMessage
+  metaMessage: MetaMessage,
+  rawMessage: String,
+  luser: Luser,
+  inChannel: Option[String],
+  content: String
+) extends UserMessage
 
 object MessageTypeParser {
 
@@ -50,9 +46,9 @@ object MessageTypeParser {
 
   def apply(mm: MetaMessage, serverMessage: String): IrcMessage = serverMessage match {
     case messageFromChan(raw, hostmask, nick, realname, userhost, chan, content) =>
-      ReceiveMessage(mm, raw, hostmask, nick, realname, userhost, Some(chan), content)
+      ReceiveMessage(mm, raw, Luser(hostmask, nick, realname, userhost), Some(chan), content)
     case messageFromUser(raw, hostmask, nick, realname, userhost, content) =>
-      ReceiveMessage(mm, raw, hostmask, nick, realname, userhost, None, content)
+      ReceiveMessage(mm, raw, Luser(hostmask, nick, realname, userhost), None, content)
     case pingFromServer(p) =>
       PingFromServer(mm, p)
     case channelNickList(r, c, nl) =>
