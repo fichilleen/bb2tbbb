@@ -1,7 +1,6 @@
 package ircbot
 import akka.actor.{ActorRef, ActorSystem}
-import ircbot.models.extractors.{BaseRegexMatcherClass, HttpUrl}
-import ircbot.models.{MessageTimeFactory, MetaMessage}
+import ircbot.models._
 import org.scalatest._
 
 import scala.util.matching.Regex.MatchIterator

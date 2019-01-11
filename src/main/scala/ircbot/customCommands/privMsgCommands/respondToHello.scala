@@ -2,7 +2,7 @@ package ircbot.customCommands.privMsgCommands
 
 import akka.actor.{Actor, Props}
 import ircbot._
-import ircbot.models.extractors.GetChanNickMessage
+import ircbot.models.GetChanNickMessage
 
 import scala.util.Random
 
@@ -23,11 +23,11 @@ private object DuplicatedResponses {
 
 class respondToHello extends Actor {
   override def receive: PartialFunction[Any, Unit] = {
-    case ReceiveMessage(mm, _, hm, nick, _, _, None, "hello") =>
-      mm.socketActor ! PrivMsg(nick, s"yo $nick. Your hostmask is $hm").message
-    case GetChanNickMessage(socket, channel, nick, message) =>
+    case ReceiveMessage(mm, _, luser, None, "hello") =>
+      mm.socketActor ! PrivMsg(luser.nick, s"yo $luser.nick. Your hostmask is ${luser.hostMask}").message
+    case GetChanNickMessage(socket, channel, luser, message) =>
       val responseString = message match {
-        case "hello" => s"yo $nick"
+        case "hello" => s"yo ${luser.nick}"
         case "cock!" => "8======D"
         case "COCK!" => "8===============D"
 
@@ -38,9 +38,15 @@ class respondToHello extends Actor {
         case "aga!" => DuplicatedResponses.aga
         case "Agamemnon!" => DuplicatedResponses.aga
         case "ctrl!" => "<ctrl> i'll bring the cyber lube"
+        case "dw!" =>
+          socket ! PrivMsg(channel, "smell").message
+          socket ! PrivMsg(channel, "yer").message
+          socket ! PrivMsg(channel, "WHIPS").message
+          ""
         case "f34r!" => "<f34r> flip me - a bit of penis mentioned and this is the most chatty wasteland has been this year"
         case "fado!" => "<fado> i also imagine web designers calling themselves developers"
         case "fich!" => "<fado> fuelled by beer and spite."
+        case "goibhniu!" => DuplicatedResponses.goibhniu()
         case "haize!" => "2016-02-05 - Never forget the day haize accidently ran an open proxy"
         case "kry0!" => "<kry0> i find a good ratio is 10 lines of code -> 1 line of coke"
         case "rooboy!" => "<rooboy> just saw a plane with a really dark chemtrail.. that means they're spraying the *really* bad stuff, yeah ?"

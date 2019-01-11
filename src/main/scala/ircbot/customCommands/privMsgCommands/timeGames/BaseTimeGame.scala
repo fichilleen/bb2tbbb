@@ -1,6 +1,6 @@
 package ircbot.customCommands.privMsgCommands.timeGames
 
-import ircbot.DbHandler
+import ircbot.{DbHandler, Luser}
 import ircbot.models.{MessageTime, MessageTimeFactory}
 import slick.jdbc.SQLiteProfile.api._
 import slick.lifted.ProvenShape
@@ -14,36 +14,38 @@ trait Unavailable extends TimeGameResponse
 trait TimeGameResult extends TimeGameResponse {
   def nick: String
   def timeStamp: MessageTime
+  def hostMask: String
 }
 
 case class Blocked() extends Unavailable
 case class TooEarly() extends Unavailable
 case class TooLate() extends Unavailable
-case class UserScores(nick: String, timeStamp: MessageTime) extends TimeGameResult
-case class AlreadySet(nick: String, timeStamp: MessageTime) extends TimeGameResult
+case class UserScores(nick: String, timeStamp: MessageTime, hostMask: String) extends TimeGameResult
+case class AlreadySet(nick: String, timeStamp: MessageTime, hostMask: String) extends TimeGameResult
 
 class TimeGameTable(tag: Tag, tableName: String)
-    extends Table[(String, Long)](tag, tableName) {
+    extends Table[(String, Long, String)](tag, tableName) {
   def id: Rep[Int] = column[Int]("id", O.PrimaryKey, O.AutoInc)
-  def timestamp: Rep[Long] = column[Long]("timestamp")
   def name: Rep[String] = column[String]("name")
-  def * : ProvenShape[(String, Long)] = (name, timestamp)
+  def timestamp: Rep[Long] = column[Long]("timestamp")
+  def hostmask: Rep[String] = column[String]("hostmask")
+  def * : ProvenShape[(String, Long, String)] = (name, timestamp, hostmask)
 }
 
 abstract class BaseTimeGame {
   protected val tableQuery: TableQuery[TimeGameTable]
-  protected def response(nick: String, res: TimeGameResponse): Seq[String]
-  protected def precondition(user: String): Boolean
+  protected def response(user: Luser, res: TimeGameResponse): Seq[String]
+  protected def precondition(user: Luser): Boolean
   protected def tooEarly: Boolean = false
   protected def tooLate: Boolean = false
 
   // This is super high, but sqlite can be slow for the first query
   // TODO: It should probably be a global variable
-  private val TIMEOUT = 500.milliseconds
+  protected val TIMEOUT: FiniteDuration = 500.milliseconds
 
   protected def nowTimestring: String = MessageTimeFactory.apply().timeString
 
-  protected def queryFilter: Query[TimeGameTable, (String, Long), Seq] = {
+  protected def queryFilter: Query[TimeGameTable, (String, Long, String), Seq] = {
     tableQuery.filter(_.timestamp > Timestamps.midnight())
   }
 
@@ -67,7 +69,7 @@ abstract class BaseTimeGame {
     }.sortBy(_._2.desc)
   }
 
-  def trigger(user: String, timestamp: MessageTime): Seq[String] = {
+  def trigger(user: Luser, timestamp: MessageTime): Seq[String] = {
     response(user,
       getResult match {
         case Some(f: TimeGameResult) => f
@@ -75,9 +77,9 @@ abstract class BaseTimeGame {
           if (tooEarly) TooEarly()
           else if (tooLate) TooLate()
           else if (precondition(user)){
-              Future.successful(setResult(user, timestamp.epochMillis))
-              UserScores(user, timestamp)
-            }
+            Future.successful(setResult(user, timestamp.epochMillis))
+            UserScores(user.nick, timestamp, user.hostMask)
+          }
           else Blocked()
       }
     )
@@ -100,13 +102,13 @@ abstract class BaseTimeGame {
     val res = DbHandler.db
       .run(queryFilter.result)
       .map(_.headOption.map { res =>
-        AlreadySet(res._1, MessageTimeFactory(Some(res._2)))
+        AlreadySet(res._1, MessageTimeFactory(Some(res._2)), res._3)
       })
     Await.result(res, TIMEOUT)
   }
 
-  protected def setResult(nick: String, ts: Long): Unit = {
-    Await.result(DbHandler.db.run(tableQuery += (nick, ts)), TIMEOUT)
+  protected def setResult(user: Luser, ts: Long): Unit = {
+    Await.result(DbHandler.db.run(tableQuery += (user.nick, ts, user.host)), TIMEOUT)
   }
 }
 
