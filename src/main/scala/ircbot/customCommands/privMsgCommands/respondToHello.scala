@@ -9,15 +9,36 @@ import scala.util.Random
 object respondToHello {def props() = Props(classOf[respondToHello])}
 
 private object DuplicatedResponses {
+
+  def quoteSelection(quotes: Set[String]): String = {
+    quotes.toVector(Random.nextInt(quotes.size))
+  }
+
   val ack: String = "* ack_ imagines a blog post next week where the new guy talks about his trip to the dark web where a group of hackers coded a bot to respond with ascii cocks"
 
   val aga = "<Agamemnon> which of you drunk fuckers stuck ileostomy bags over the front of my house?"
 
   def goibhniu(): String = {
-    val resA = "goibhniu should order a mac, then return it because it doesn't have a purely functional package manager and declarative configuration system"
-    val resB = "<goibhniu> feed me to the pigs"
-    if((Random.nextInt(6) % 2) == 0) resA
-    else resB
+    quoteSelection(Set(
+      "goibhniu should order a mac, then return it because it doesn't have a purely functional package manager and declarative configuration system",
+      "<goibhniu> feed me to the pigs",
+      "<goibhniu> one big fat throbbing primary index"
+      )
+    )
+  }
+
+  def fado(): String = {
+    quoteSelection(Set(
+      "<fado> i also imagine web designers calling themselves developers",
+      "<fado> i want to stay alive long enough until medical science can restore ctrl's hole so we can run a train on him."
+    ))
+  }
+
+  def fear(): String = {
+    quoteSelection(Set(
+      "<f34r> good to see ive struck fear into your hearts",
+      "<f34r> flip me - a bit of penis mentioned and this is the most chatty wasteland has been this year"
+    ))
   }
 }
 
@@ -43,8 +64,9 @@ class respondToHello extends Actor {
           socket ! PrivMsg(channel, "yer").message
           socket ! PrivMsg(channel, "WHIPS").message
           ""
-        case "f34r!" => "<f34r> flip me - a bit of penis mentioned and this is the most chatty wasteland has been this year"
-        case "fado!" => "<fado> i also imagine web designers calling themselves developers"
+        case "f34r!" => DuplicatedResponses.fear
+        case "loop!" => "loop!"
+        case "fado!" => DuplicatedResponses.fado()
         case "fich!" => "<fado> fuelled by beer and spite."
         case "goibhniu!" => DuplicatedResponses.goibhniu()
         case "haize!" => "2016-02-05 - Never forget the day haize accidently ran an open proxy"
