@@ -13,7 +13,7 @@ class SecondGame(firstGame: FirstGame)
       case Some(res) =>
         if ((res.nick == user.nick) || (res.hostMask == user.hostMask)) false
         else true
-      case None => true
+      case None => false
     }
   }
 
