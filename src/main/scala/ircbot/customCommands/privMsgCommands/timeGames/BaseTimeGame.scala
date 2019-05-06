@@ -1,5 +1,6 @@
 package ircbot.customCommands.privMsgCommands.timeGames
 
+import akka.Done
 import ircbot.{DbHandler, Luser}
 import ircbot.models.{MessageTime, MessageTimeFactory}
 import slick.jdbc.SQLiteProfile.api._
@@ -8,7 +9,6 @@ import slick.lifted.ProvenShape
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
 import scala.concurrent.ExecutionContext.Implicits.global
-
 trait TimeGameResponse
 trait Unavailable extends TimeGameResponse
 trait TimeGameResult extends TimeGameResponse {
@@ -39,8 +39,6 @@ abstract class BaseTimeGame {
   protected def tooEarly: Boolean = false
   protected def tooLate: Boolean = false
 
-  // This is super high, but sqlite can be slow for the first query
-  // TODO: It should probably be a global variable
   protected val TIMEOUT: FiniteDuration = 500.milliseconds
 
   protected def nowTimestring: String = MessageTimeFactory.apply().timeString
@@ -50,20 +48,18 @@ abstract class BaseTimeGame {
   }
 
   def countByNick(nick: String, thisYear: Boolean = true): Int = {
-    val q = thisYear match {
-      case true => tableQuery.filter(_.timestamp > Timestamps.currentYear())
-      case false => tableQuery
-    }
+    val q =
+        if (thisYear) tableQuery.filter(_.timestamp > Timestamps.currentYear())
+        else tableQuery
     val e = q.filter(_.name === nick).length.result
     e.statements.foreach(println)
     Await.result(DbHandler.db.run(e), TIMEOUT)
   }
 
   def countEveryone(thisYear: Boolean = true): Query[(Rep[String], Rep[Int]), (String, Int), Seq] = {
-    val q = thisYear match {
-      case true => tableQuery.filter(_.timestamp > Timestamps.currentYear())
-      case false => tableQuery
-    }
+    val q =
+      if (thisYear) tableQuery.filter(_.timestamp > Timestamps.currentYear())
+      else tableQuery
     q.groupBy(_.name).map{
       case (s, res) =>  s -> res.length
     }.sortBy(_._2.desc)
@@ -77,7 +73,7 @@ abstract class BaseTimeGame {
           if (tooEarly) TooEarly()
           else if (tooLate) TooLate()
           else if (precondition(user)){
-            Future.successful(setResult(user, timestamp.epochMillis))
+            setResult(user, timestamp.epochMillis)
             UserScores(user.nick, timestamp, user.hostMask)
           }
           else Blocked()
@@ -107,8 +103,8 @@ abstract class BaseTimeGame {
     Await.result(res, TIMEOUT)
   }
 
-  protected def setResult(user: Luser, ts: Long): Unit = {
-    Await.result(DbHandler.db.run(tableQuery += (user.nick, ts, user.host)), TIMEOUT)
+  protected def setResult(user: Luser, ts: Long): Future[Done] = {
+    DbHandler.db.run(tableQuery += (user.nick, ts, user.host)).map(_ => Done)
   }
 }
 

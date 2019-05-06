@@ -1,38 +1,49 @@
 package ircbot.customCommands.privMsgCommands.timeGames
 
-import ircbot.{DbHandler, Luser}
+import akka.Done
 import ircbot.models.MessageTime
+import ircbot.{DbHandler, Luser}
 import slick.jdbc.SQLiteProfile.api._
 
-import scala.concurrent.{Await, Future}
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 class LastGame extends BaseTimeGame {
   override val tableQuery =
     TableQuery[TimeGameTable]((tag: Tag) => new TimeGameTable(tag, "last"))
 
   override def precondition(user: Luser): Boolean = true
-  override def response(user: Luser, res: TimeGameResponse) = Seq("Unused")
+  override def response(user: Luser, res: TimeGameResponse): Seq[String] = Seq("Unused")
 
   override def trigger(user: Luser, timestamp: MessageTime): Seq[String] = {
       getResult match {
-        case Some(res: TimeGameResult) =>
-          if ((res.nick == user.nick) || (res.hostMask == user.hostMask))
-            Seq(s"${res.nick}: You already have last! @ ${res.timeStamp.timeString}")
+        case Some(existingResult: TimeGameResult) =>
+          if ((existingResult.nick == user.nick) || (existingResult.hostMask == user.hostMask))
+            Seq(s"${existingResult.nick}: You already have last! @ ${existingResult.timeStamp.timeString}")
           else {
-            Future.successful(updateLock(res.timeStamp.epochMillis, timestamp.epochMillis, user))
-            Seq(s"${user.nick}: you stole last! from ${res.nick} @ ${res.timeStamp.timeString}, now you're holding it at ${timestamp.timeString}")
+            Future.successful(updateLock(existingResult.timeStamp.epochMillis, timestamp.epochMillis, user))
+            Seq(s"${user.nick}: you stole last! from ${existingResult.nick} @ ${existingResult.timeStamp.timeString}, now you're holding it at ${timestamp.timeString}")
           }
 
         case None =>
-          Future.successful(setResult(user, timestamp.epochMillis))
+          setResult(user, timestamp.epochMillis)
           Seq(s"${user.nick}: You're holding last! @ ${timestamp.timeString}")
       }
   }
 
-  private def updateLock(oldTimestamp: Long, newTimestamp: Long, user: Luser): Unit = {
-    val q = tableQuery.filter(_.timestamp === oldTimestamp)
-      .map(r => (r.name, r.timestamp, r.hostmask))
-      .update((user.nick, newTimestamp, user.hostMask))
-    Await.result(DbHandler.db.run(q), TIMEOUT)
+  private def updateLock(oldTimestamp: Long, newTimestamp: Long, user: Luser): Future[Done] = {
+    DbHandler.db.run(
+      tableQuery.filter(_.timestamp === oldTimestamp)
+        .map(r => (r.name, r.timestamp, r.hostmask))
+        .update((user.nick, newTimestamp, user.hostMask))
+    ).map(_ => Done)
+  }
+
+  def flush(): Seq[String] = {
+    getResult match {
+      case Some(result: TimeGameResult) =>
+        Seq(s"last today was ${result.nick} at ${result.timeStamp.timeString}!")
+      case None => Seq.empty[String]
+    }
   }
 }

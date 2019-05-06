@@ -5,6 +5,7 @@ scalaVersion := "2.12.4"
 libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-actor" % "2.5.13",
   "com.typesafe.akka" %% "akka-stream" % "2.5.13",
+  "com.enragedginger" %% "akka-quartz-scheduler" % "1.8.0-akka-2.5.x",
   "com.typesafe" % "config" % "1.3.1",
   "org.scalactic" %% "scalactic" % "3.0.4",
   "org.scalatest" %% "scalatest" % "3.0.4" % "test",
