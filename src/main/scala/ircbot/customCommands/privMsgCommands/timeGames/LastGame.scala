@@ -15,8 +15,8 @@ class LastGame extends BaseTimeGame {
   override def precondition(user: Luser): Boolean = true
   override def response(user: Luser, res: TimeGameResponse): Seq[String] = Seq("Unused")
 
-  override def trigger(user: Luser, timestamp: MessageTime): Seq[String] = {
-      getResult match {
+  override def trigger(user: Luser, timestamp: MessageTime): Future[Seq[String]] = {
+      getResult.map {
         case Some(existingResult: TimeGameResult) =>
           if ((existingResult.nick == user.nick) || (existingResult.hostMask == user.hostMask))
             Seq(s"${existingResult.nick}: You already have last! @ ${existingResult.timeStamp.timeString}")
@@ -39,8 +39,8 @@ class LastGame extends BaseTimeGame {
     ).map(_ => Done)
   }
 
-  def flush(): Seq[String] = {
-    getResult match {
+  def flush(): Future[Seq[String]] = {
+    getResult.map {
       case Some(result: TimeGameResult) =>
         Seq(s"last today was ${result.nick} at ${result.timeStamp.timeString}!")
       case None => Seq.empty[String]

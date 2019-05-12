@@ -7,8 +7,7 @@ import slick.jdbc.SQLiteProfile.api._
 import slick.lifted.ProvenShape
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.duration.Duration
-import scala.concurrent.{Await, Future}
+import scala.concurrent.Future
 
 sealed trait TimeGame {
   def nick: String
@@ -29,10 +28,11 @@ class OldDbHandler(config: Config) {
   private val first = TableQuery[First]
   private val db = Database.forURL(
     s"jdbc:sqlite:${config.getString("botconfig.sqlite_file")}.db",
-    driver = "org.sqlite.JDBC")
+    driver = "org.sqlite.JDBC"
+  )
 
-  def tryFirst(user: String, timestamp: MessageTime): FirstToday = {
-    Await.result(getFirst, Duration.Inf) match {
+  def tryFirst(user: String, timestamp: MessageTime): Future[FirstToday] = {
+    getFirst.map{
       case Some(f: FirstToday) => f
       case None =>
         Future.successful(setFirst(user, timestamp.epochMillis))
@@ -40,9 +40,8 @@ class OldDbHandler(config: Config) {
     }
   }
 
-  private def setFirst(nick: String, ts: Long): Unit = {
+  private def setFirst(nick: String, ts: Long): Unit =
     db.run(first += (nick, ts))
-  }
 
   private def getFirst: Future[Option[FirstToday]] = {
     val first = TableQuery[First]

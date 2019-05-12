@@ -2,9 +2,11 @@ package ircbot.customCommands.privMsgCommands
 
 import akka.actor.{Actor, ActorRef, Props}
 import com.typesafe.akka.extension.quartz.QuartzSchedulerExtension
-import ircbot._
+import ircbot.PrivMsg
 import ircbot.customCommands.privMsgCommands.timeGames._
 import ircbot.models.GetChanNickTimeMessage
+
+import scala.concurrent.{ExecutionContext, Future}
 
 object TimeGameActor {
   def props() =
@@ -13,7 +15,7 @@ object TimeGameActor {
 
 case object FlushLasts
 
-class TimeGameActor extends Actor {
+class TimeGameActor(implicit ec: ExecutionContext) extends Actor {
 
   val first = new FirstGame
   val second = new SecondGame(first)
@@ -36,14 +38,15 @@ class TimeGameActor extends Actor {
 
     case FlushLasts =>
       lastKnownSocket.foreach{ s =>
-        last.flush().foreach(
-          s ! PrivMsg(defaultChannel, _).message
+        last.flush().map(_.foreach(
+            s ! PrivMsg(defaultChannel, _).message
+          )
         )
       }
 
     case GetChanNickTimeMessage(socket, channel, luser, time, message) =>
-      val response: Seq[String] = message match {
-          // TODO: These could be case insensitive regex
+      val response: Future[Seq[String]] = message match {
+          // TODO: These should be case insensitive regex
 
         case "first!" =>
           first.trigger(luser, time)
@@ -66,7 +69,9 @@ class TimeGameActor extends Actor {
           haize.getCountAsStringSeq()
 
         case "420blazeit!" =>
-          blaze.trigger(luser, time) ++ hatTrick.trigger(luser, time)
+          Future.reduceLeft(
+            Set(blaze.trigger(luser, time), hatTrick.trigger(luser, time))
+          )( _ ++ _)
         case "420s!" =>
           blaze.getCountAsStringSeq()
         case "hat tricks!" =>
@@ -79,8 +84,8 @@ class TimeGameActor extends Actor {
 
         case _ =>
           println("no match")
-          Seq.empty[String]
+          Future.successful(Seq.empty[String])
       }
-      response.foreach(socket ! PrivMsg(channel, _).message)
+      response.map(_.foreach(socket ! PrivMsg(channel, _).message))
   }
 }
