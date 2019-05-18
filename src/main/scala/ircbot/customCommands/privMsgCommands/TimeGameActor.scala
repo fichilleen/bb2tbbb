@@ -1,7 +1,6 @@
 package ircbot.customCommands.privMsgCommands
 
-import akka.actor.{Actor, ActorRef, Props}
-import com.typesafe.akka.extension.quartz.QuartzSchedulerExtension
+import akka.actor.{Actor, Props}
 import ircbot.PrivMsg
 import ircbot.customCommands.privMsgCommands.timeGames._
 import ircbot.models.GetChanNickTimeMessage
@@ -25,6 +24,7 @@ class TimeGameActor(implicit ec: ExecutionContext) extends Actor {
   val hatTrick = new HatTricks(first, leet, blaze)
   val last = new LastGame
 
+  /*
   // TODO: This is a terrible hack for the scheduler, because it's not aware of
   // the context of sockets and channels
   var lastKnownSocket: Option[ActorRef] = Some(self)
@@ -33,9 +33,11 @@ class TimeGameActor(implicit ec: ExecutionContext) extends Actor {
   val scheduler: QuartzSchedulerExtension = QuartzSchedulerExtension(context.system)
 
   scheduler.schedule("BeforeMidnight", self, FlushLasts)
+   */
 
   override def receive: PartialFunction[Any, Unit] = {
 
+    /*
     case FlushLasts =>
       lastKnownSocket.foreach{ s =>
         last.flush().map(_.foreach(
@@ -43,6 +45,8 @@ class TimeGameActor(implicit ec: ExecutionContext) extends Actor {
           )
         )
       }
+
+     */
 
     case GetChanNickTimeMessage(socket, channel, luser, time, message) =>
       val response: Future[Seq[String]] = message match {

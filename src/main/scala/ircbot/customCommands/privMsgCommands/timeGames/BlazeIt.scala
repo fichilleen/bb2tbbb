@@ -3,13 +3,17 @@ package ircbot.customCommands.privMsgCommands.timeGames
 import ircbot.Luser
 import slick.jdbc.SQLiteProfile.api._
 
+import scala.concurrent.Future
+
 class BlazeIt extends BaseTimeGame {
   override val tableQuery =
     TableQuery[TimeGameTable]((tag: Tag) => new TimeGameTable(tag, "blaze"))
 
-  override def precondition(user: Luser): Boolean = {
-    System.currentTimeMillis() >= Timestamps.blazeit() &&
-    System.currentTimeMillis() <= (Timestamps.blazeit() + 59999)
+  override def precondition(user: Luser): Future[Boolean] = {
+    Future.successful(
+      System.currentTimeMillis() >= Timestamps.blazeit() &&
+      System.currentTimeMillis() <= (Timestamps.blazeit() + 59999)
+    )
   }
 
   // These could be tied in with the precondition, although this is a bit easier to read than two negative ifs

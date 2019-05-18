@@ -12,7 +12,7 @@ class LastGame extends BaseTimeGame {
   override val tableQuery =
     TableQuery[TimeGameTable]((tag: Tag) => new TimeGameTable(tag, "last"))
 
-  override def precondition(user: Luser): Boolean = true
+  override def precondition(user: Luser): Future[Boolean] = Future.successful(true)
   override def response(user: Luser, res: TimeGameResponse): Seq[String] = Seq("Unused")
 
   override def trigger(user: Luser, timestamp: MessageTime): Future[Seq[String]] = {

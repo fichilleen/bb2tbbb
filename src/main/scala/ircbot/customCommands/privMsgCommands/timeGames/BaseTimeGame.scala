@@ -8,7 +8,6 @@ import slick.lifted.ProvenShape
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import scala.concurrent.duration._
 trait TimeGameResponse
 trait Unavailable extends TimeGameResponse
 trait TimeGameResult extends TimeGameResponse {
@@ -35,11 +34,12 @@ class TimeGameTable(tag: Tag, tableName: String)
 abstract class BaseTimeGame {
   protected val tableQuery: TableQuery[TimeGameTable]
   protected def response(user: Luser, res: TimeGameResponse): Seq[String]
-  protected def precondition(user: Luser): Boolean
+  // TODO: Half the classes having a nonconcurrent precondition and wrapping their own preconditions
+  // is stupid - have a wrapper here that's fPrecondition or something, so all the other
+  // classes don't have to implement it
+  protected def precondition(user: Luser): Future[Boolean]
   protected def tooEarly: Boolean = false
   protected def tooLate: Boolean = false
-
-  protected val TIMEOUT: FiniteDuration = 500.milliseconds
 
   protected def nowTimestring: String = MessageTimeFactory.apply().timeString
 
@@ -65,21 +65,9 @@ abstract class BaseTimeGame {
   }
 
   def trigger(user: Luser, timestamp: MessageTime): Future[Seq[String]] = {
-    getResult.map{ r =>
-      // TODO: This is pretty ugly - may be worth refactoring it
-      response(user,
-        r match {
-          case Some(f: TimeGameResult) => f
-          case None =>
-            if (tooEarly) TooEarly()
-            else if (tooLate) TooLate()
-            else if (precondition(user)) {
-              setResult(user, timestamp.epochMillis)
-              UserScores(user.nick, timestamp, user.hostMask)
-            }
-            else Blocked()
-        }
-      )
+    getResult.flatMap {
+      case Some(f: TimeGameResult) => Future.successful(response(user, f))
+      case None => resultNotSet(user, timestamp).map(response(user, _))
     }
   }
 
@@ -95,6 +83,20 @@ abstract class BaseTimeGame {
       .map(_.headOption.map { res =>
         AlreadySet(res._1, MessageTimeFactory(Some(res._2)), res._3)
       })
+
+  private def resultNotSet(user: Luser, timeStamp: MessageTime): Future[TimeGameResponse] = {
+    // TODO: too early and too late should probably be conditions inside each implementation of precondition
+    if (tooEarly) Future.successful(TooEarly())
+    else if (tooLate) Future.successful(TooLate())
+
+    else precondition(user).map{ p =>
+      if (p) {
+        setResult(user, timeStamp.epochMillis)
+        UserScores(user.nick, timeStamp, user.hostMask)
+      }
+      else Blocked()
+    }
+  }
 
   protected def setResult(user: Luser, ts: Long): Future[Done] =
     DbHandler.db.run(tableQuery += (user.nick, ts, user.host)).map(_ => Done)

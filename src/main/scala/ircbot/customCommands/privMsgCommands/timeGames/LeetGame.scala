@@ -3,13 +3,17 @@ package ircbot.customCommands.privMsgCommands.timeGames
 import ircbot.Luser
 import slick.jdbc.SQLiteProfile.api._
 
+import scala.concurrent.Future
+
 class LeetGame extends BaseTimeGame {
   override val tableQuery =
     TableQuery[TimeGameTable]((tag: Tag) => new TimeGameTable(tag, "leet"))
 
-  override def precondition(user: Luser): Boolean = {
-    System.currentTimeMillis() >= Timestamps.leet() &&
-    System.currentTimeMillis() <= (Timestamps.leet() + 59999)
+  override def precondition(user: Luser): Future[Boolean] = {
+    Future.successful(
+      System.currentTimeMillis() >= Timestamps.leet() &&
+      System.currentTimeMillis() <= (Timestamps.leet() + 59999)
+    )
   }
 
   override def tooEarly: Boolean = System.currentTimeMillis() < Timestamps.leet()
