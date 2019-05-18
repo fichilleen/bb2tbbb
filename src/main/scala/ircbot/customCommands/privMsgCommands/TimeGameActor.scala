@@ -5,7 +5,8 @@ import ircbot.PrivMsg
 import ircbot.customCommands.privMsgCommands.timeGames._
 import ircbot.models.GetChanNickTimeMessage
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 object TimeGameActor {
   def props() =
@@ -14,7 +15,7 @@ object TimeGameActor {
 
 case object FlushLasts
 
-class TimeGameActor(implicit ec: ExecutionContext) extends Actor {
+class TimeGameActor extends Actor {
 
   val first = new FirstGame
   val second = new SecondGame(first)
