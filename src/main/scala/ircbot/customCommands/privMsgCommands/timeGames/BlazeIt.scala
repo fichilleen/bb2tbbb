@@ -1,9 +1,11 @@
 package ircbot.customCommands.privMsgCommands.timeGames
 
 import ircbot.Luser
+import ircbot.models.MessageTime
 import slick.jdbc.SQLiteProfile.api._
 
 import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
 
 class BlazeIt extends BaseTimeGame {
   override val tableQuery =
@@ -20,17 +22,22 @@ class BlazeIt extends BaseTimeGame {
   override def tooEarly: Boolean = System.currentTimeMillis() < Timestamps.blazeit()
   override def tooLate: Boolean = System.currentTimeMillis() >= (Timestamps.blazeit() + 60000)
 
-  override def response(user: Luser, res: TimeGameResponse): Seq[String] = {
-    Seq(
-      res match {
-        case UserScores(u, t, _) =>
-          s"$u smooooookes weed e'ry day! ${t.timeString} You've been blazed ${countByNick(u)} times"
-        case AlreadySet(u, t, _) =>
-          s"$u was blazed today at ${t.timeString}! Your attempt was at $nowTimestring"
-        case TooEarly() => "Only at 16:20"
-        case TooLate() => "No one got blazed today ;("
-        case x => s"Uh oh, something went fucky wucky - $x"
-      }
-    )
+  private def scoreReponse(nick: String, t: MessageTime): Future[Seq[String]] =
+    countByNick(nick).map{ c =>
+      Seq(s"$nick smooooookes weed e'ry day! ${t.timeString} You've been blazed $c times")
+    }
+
+  private def alreadySetResponse(nick: String, t: MessageTime): Future[Seq[String]] =
+    Future.successful(Seq(
+      s"$nick was blazed today at ${t.timeString}! Your attempt was at $nowTimestring"
+    ))
+
+  override def response(user: Luser, res: TimeGameResponse): Future[Seq[String]] = {
+    res match {
+      case UserScores(u, t, _) => scoreReponse(u, t)
+      case AlreadySet(u, t, _) => alreadySetResponse(u, t)
+      case TooEarly() => Future.successful(Seq("Only at 16:20"))
+      case TooLate() => Future.successful(Seq("No one got blazed today ;("))
+    }
   }
 }

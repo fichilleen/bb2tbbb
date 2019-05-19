@@ -33,9 +33,9 @@ class TimeGameTable(tag: Tag, tableName: String)
 
 abstract class BaseTimeGame {
   protected val tableQuery: TableQuery[TimeGameTable]
-  protected def response(user: Luser, res: TimeGameResponse): Seq[String]
+  protected def response(user: Luser, res: TimeGameResponse): Future[Seq[String]]
   // TODO: Half the classes having a nonconcurrent precondition and wrapping their own preconditions
-  // is stupid - have a wrapper here that's fPrecondition or something, so all the other
+  // with Future.success is stupid - have a wrapper here that's fPrecondition or something, so all the other
   // classes don't have to implement it
   protected def precondition(user: Luser): Future[Boolean]
   protected def tooEarly: Boolean = false
@@ -43,33 +43,31 @@ abstract class BaseTimeGame {
 
   protected def nowTimestring: String = MessageTimeFactory.apply().timeString
 
-  protected def queryFilter: Query[TimeGameTable, (String, Long, String), Seq] = {
+  protected def queryFilter: Query[TimeGameTable, (String, Long, String), Seq] =
     tableQuery.filter(_.timestamp > Timestamps.midnight())
-  }
 
   def countByNick(nick: String, thisYear: Boolean = true): Future[Int] = {
-    val q =
+    val query =
         if (thisYear) tableQuery.filter(_.timestamp > Timestamps.currentYear())
         else tableQuery
-    DbHandler.db.run(q.filter(_.name === nick).length.result)
+    DbHandler.db.run(query.filter(_.name === nick).length.result)
   }
 
   def countEveryone(thisYear: Boolean = true): Query[(Rep[String], Rep[Int]), (String, Int), Seq] = {
-    val q =
+    val query =
       if (thisYear) tableQuery.filter(_.timestamp > Timestamps.currentYear())
       else tableQuery
 
-    q.groupBy(_.name).map{
+    query.groupBy(_.name).map{
       case (s, res) =>  s -> res.length
     }.sortBy(_._2.desc)
   }
 
-  def trigger(user: Luser, timestamp: MessageTime): Future[Seq[String]] = {
+  def trigger(user: Luser, timestamp: MessageTime): Future[Seq[String]] =
     getResult.flatMap {
-      case Some(f: TimeGameResult) => Future.successful(response(user, f))
-      case None => resultNotSet(user, timestamp).map(response(user, _))
+      case Some(f: TimeGameResult) => response(user, f)
+      case None => resultNotSet(user, timestamp).map(response(user, _)).flatten
     }
-  }
 
   def getCount(thisYear: Boolean = true): Future[Seq[(String, Int)]] =
     DbHandler.db.run(countEveryone(thisYear).result)
