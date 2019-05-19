@@ -21,7 +21,7 @@ class LastGame extends BaseTimeGame {
           if ((existingResult.nick == user.nick) || (existingResult.hostMask == user.hostMask))
             Seq(s"${existingResult.nick}: You already have last! @ ${existingResult.timeStamp.timeString}")
           else {
-            updateLock(existingResult.timeStamp.epochMillis, timestamp.epochMillis, user)
+            updateLock(existingResult.timeStamp.epochMillis, timestamp.epochMillis, user).map(_ => Done)
             Seq(s"${user.nick}: you stole last! from ${existingResult.nick} @ ${existingResult.timeStamp.timeString}, now you're holding it at ${timestamp.timeString}")
           }
 
