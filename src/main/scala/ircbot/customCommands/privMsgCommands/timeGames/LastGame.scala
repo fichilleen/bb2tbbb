@@ -16,18 +16,19 @@ class LastGame extends BaseTimeGame {
   override def response(user: Luser, res: TimeGameResponse): Future[Seq[String]] = Future.successful(Seq("Unused"))
 
   override def trigger(user: Luser, timestamp: MessageTime): Future[Seq[String]] = {
-      getResult.map {
+      getResult.flatMap {
         case Some(existingResult: TimeGameResult) =>
           if ((existingResult.nick == user.nick) || (existingResult.hostMask == user.hostMask))
-            Seq(s"${existingResult.nick}: You already have last! @ ${existingResult.timeStamp.timeString}")
-          else {
-            updateLock(existingResult.timeStamp.epochMillis, timestamp.epochMillis, user).map(_ => Done)
-            Seq(s"${user.nick}: you stole last! from ${existingResult.nick} @ ${existingResult.timeStamp.timeString}, now you're holding it at ${timestamp.timeString}")
-          }
+            Future.successful(Seq(s"${existingResult.nick}: You already have last! @ ${existingResult.timeStamp.timeString}"))
+          else
+            updateLock(existingResult.timeStamp.epochMillis, timestamp.epochMillis, user).map{ _ =>
+              Seq(s"${user.nick}: you stole last! from ${existingResult.nick} @ ${existingResult.timeStamp.timeString}, now you're holding it at ${timestamp.timeString}")
+            }
 
         case None =>
-          setResult(user, timestamp.epochMillis)
-          Seq(s"${user.nick}: You're holding last! @ ${timestamp.timeString}")
+          setResult(user, timestamp.epochMillis).map{ _ =>
+            Seq(s"${user.nick}: You're holding last! @ ${timestamp.timeString}")
+          }
       }
   }
 
