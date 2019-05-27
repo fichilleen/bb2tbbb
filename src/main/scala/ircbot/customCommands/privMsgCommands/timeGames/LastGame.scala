@@ -33,10 +33,12 @@ class LastGame extends BaseTimeGame {
   }
 
   private def updateLock(oldTimestamp: Long, newTimestamp: Long, user: Luser): Future[Done] = {
+    val query = tableQuery.filter(_.timestamp === oldTimestamp)
+      .map(r => (r.name, r.timestamp, r.hostmask))
+      .update((user.nick, newTimestamp, user.hostMask))
+    query.statements.foreach(println)
     DbHandler.db.run(
-      tableQuery.filter(_.timestamp === oldTimestamp)
-        .map(r => (r.name, r.timestamp, r.hostmask))
-        .update((user.nick, newTimestamp, user.hostMask))
+      query
     ).map(_ => Done)
   }
 
