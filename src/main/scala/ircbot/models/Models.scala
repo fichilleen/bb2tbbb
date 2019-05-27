@@ -22,6 +22,6 @@ object MessageTimeFactory {
       case None    => new java.util.Date()
     }
     val sdf = new SimpleDateFormat("HH:mm:ss:SSS").format(d)
-    MessageTime(d, System.currentTimeMillis(), sdf)
+    MessageTime(d, d.getTime, sdf)
   }
 }
