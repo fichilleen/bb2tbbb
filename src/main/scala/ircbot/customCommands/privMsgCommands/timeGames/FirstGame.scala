@@ -31,7 +31,7 @@ class FirstGame extends BaseTimeGame {
 
     res match {
       case UserScores(u, t, _) => countByNick(u).map { n =>
-        Seq(s"Congratulations on your first $u, at ${t.timeString}! You now have $n}")
+        Seq(s"Congratulations on your first $u, at ${t.timeString}! You now have $n")
       }
       case otherResult => wrapStringResponse(otherResult)
     }
