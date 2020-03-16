@@ -59,4 +59,6 @@ object Timestamps {
     date.set(Calendar.MILLISECOND, 0)
     date.getTimeInMillis
   }
+
+  def yesterday(): Long = midnight() - (24 * 60 * 60 * 1000)
 }

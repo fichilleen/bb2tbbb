@@ -28,7 +28,7 @@ class HatTricks(firstGame: FirstGame, leetGame: LeetGame, blazeIt: BlazeIt) exte
   override def response(user: Luser, res: TimeGameResponse): Future[Seq[String]] = {
     res match {
       case UserScores(u, _, _) =>
-        countByNick(u).map { c =>
+        countByNick(u, thisYear = false).map { c =>
           Seq(
             s"gooooooooooooaaaaaaaaaaaaaaallllllllllllllll! $u has $c hat tricks!",
             """\o\"""

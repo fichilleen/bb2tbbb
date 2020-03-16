@@ -30,6 +30,7 @@ private object DuplicatedResponses {
   def fado(): String = {
     quoteSelection(Set(
       "<fado> i also imagine web designers calling themselves developers",
+      "<fado> can we get rid of Gay Sex Fado now plx",
       "<fado> i want to stay alive long enough until medical science can restore ctrl's hole so we can run a train on him."
     ))
   }

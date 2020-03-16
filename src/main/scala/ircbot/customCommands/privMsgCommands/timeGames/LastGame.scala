@@ -1,7 +1,7 @@
 package ircbot.customCommands.privMsgCommands.timeGames
 
 import akka.Done
-import ircbot.models.MessageTime
+import ircbot.models.{MessageTime, MessageTimeFactory}
 import ircbot.{DbHandler, Luser}
 import slick.jdbc.SQLiteProfile.api._
 
@@ -40,11 +40,18 @@ class LastGame extends BaseTimeGame {
     ).map(_ => Done)
   }
 
-  def flush(): Future[Seq[String]] = {
-    getResult.map {
-      case Some(result: TimeGameResult) =>
-        Seq(s"last today was ${result.nick} at ${result.timeStamp.timeString}!")
-      case None => Seq.empty[String]
+  def flush(): Future[Seq[String]] =
+    yesterdayResult.map {
+      case Some(result: TimeGameResult) => Seq(s"last yesterday was ${result.nick} at ${result.timeStamp.timeString}!")
+      case None => Seq(s"No one even tried last yesterday")
     }
+
+  private def yesterdayResult: Future[Option[TimeGameResult]] = {
+    val r = tableQuery.filter(r => (r.timestamp < Timestamps.midnight()) && (r.timestamp > Timestamps.yesterday)).result
+    DbHandler.db
+      .run(r)
+      .map(_.headOption.map { res =>
+        AlreadySet(res._1, MessageTimeFactory(Some(res._2)), res._3)
+      })
   }
 }

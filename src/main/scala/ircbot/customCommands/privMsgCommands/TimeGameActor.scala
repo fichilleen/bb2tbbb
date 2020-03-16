@@ -86,6 +86,8 @@ class TimeGameActor extends Actor {
           last.trigger(luser, time)
         case "lasts!" =>
           last.getCountAsStringSeq()
+        case "lastlast!" =>
+          last.flush()
 
         case _ =>
           println("no match")
