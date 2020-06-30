@@ -10,7 +10,7 @@ class ExtractorSpec extends FlatSpec with Matchers {
   val responseActor: ActorRef = system.actorOf(MessageBuilder.props())
 
   val s = ":u!n@x PRIVMSG bot_name :hi bot"
-  val genericMetaMessage = MessageTypeParser(MetaMessage(responseActor, MessageTimeFactory(), s), s)
+  val genericMetaMessage: IrcMessage = MessageParser(MetaMessage(responseActor, MessageTimeFactory(), s), s)
 
   "A html link" should "return an Option[String] of the original link" in {
     val link = "https://www.ietf.org/rfc/rfc1459.txt"
@@ -33,6 +33,4 @@ class ExtractorSpec extends FlatSpec with Matchers {
     regexResponse.group(2) shouldBe "bot"
 
   }
-
-
 }

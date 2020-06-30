@@ -1,8 +1,8 @@
-package ircbot.customCommands
+package ircbot.Modules
 
 import akka.actor.{Actor, ActorRef, Props}
 import akka.routing.Router
-import ircbot.customCommands.privMsgCommands.{AnswerVersionRequest, TimeGameActor, respondToHello}
+import ircbot.Modules.Commands.{AnswerVersionRequest, TimeGameActor, respondToHello}
 import ircbot.{MessageBuilder, SystemMessage, UserMessage}
 
 object CommandRouters{

@@ -27,17 +27,17 @@ case class BotJoinsChannel(
   nickList: String
 ) extends SystemMessage
 
-
-case class ReceiveMessage(
+case class ReceivedMessage(
   metaMessage: MetaMessage,
   rawMessage: String,
   luser: Luser,
-  inChannel: Option[String],
-  content: String
-) extends UserMessage
+  content: String,
+  channel: Option[String]
+) extends UserMessage {
+  def responseDestination: String = channel.getOrElse(luser.nick)
+}
 
-object MessageTypeParser {
-
+object IrcMessageParser {
   private val messageFromChan = """(^:((\w*?)!.*(\w*?)@(.*?)) PRIVMSG (#\w*) :(.*)$)""".r
   private val messageFromUser = """(^:((\w*?)!.*(\w*?)@(.*?)) PRIVMSG \w* :(.*)$)""".r
   private val channelNickList = """(^:.*? 353 .*? = (#\w*) :([@+]?.*)$)""".r
@@ -46,9 +46,9 @@ object MessageTypeParser {
 
   def apply(mm: MetaMessage, serverMessage: String): IrcMessage = serverMessage match {
     case messageFromChan(raw, hostmask, nick, realname, userhost, chan, content) =>
-      ReceiveMessage(mm, raw, Luser(hostmask, nick, realname, userhost), Some(chan), content)
+      ReceivedMessage(mm, raw, Luser(hostmask, nick, realname, userhost), content, Some(chan))
     case messageFromUser(raw, hostmask, nick, realname, userhost, content) =>
-      ReceiveMessage(mm, raw, Luser(hostmask, nick, realname, userhost), None, content)
+      ReceivedMessage(mm, raw, Luser(hostmask, nick, realname, userhost), content, None)
     case pingFromServer(p) =>
       PingFromServer(mm, p)
     case channelNickList(r, c, nl) =>

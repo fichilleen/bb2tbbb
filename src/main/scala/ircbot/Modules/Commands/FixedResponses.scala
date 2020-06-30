@@ -1,12 +1,13 @@
-package ircbot.customCommands.privMsgCommands
+package ircbot.Modules.Commands
 
 import akka.actor.{Actor, Props}
 import ircbot._
-import ircbot.models.GetChanNickMessage
 
 import scala.util.Random
 
-object respondToHello {def props() = Props(classOf[respondToHello])}
+object respondToHello {
+  def props(): Props = Props(classOf[respondToHello])
+}
 
 private object DuplicatedResponses {
 
@@ -51,9 +52,11 @@ private object DuplicatedResponses {
 
 class respondToHello extends Actor {
   override def receive: PartialFunction[Any, Unit] = {
-    case ReceiveMessage(mm, _, luser, None, "hello") =>
-      mm.socketActor ! PrivMsg(luser.nick, s"yo $luser.nick. Your hostmask is ${luser.hostMask}").message
-    case GetChanNickMessage(socket, channel, luser, message) =>
+
+    case ReceivedMessage(mm, _, luser, "test", None) =>
+      mm.socketActor ! PrivMsg(luser.nick, s"yo ${luser.nick}. Your hostmask is ${luser.hostMask}").message
+
+    case r@ReceivedMessage(mm, _, luser, message, _) =>
       val responseString = message match {
         case "hello" => s"yo ${luser.nick}"
         case "cock!" => "8======D"
@@ -66,13 +69,7 @@ class respondToHello extends Actor {
         case "aga!" => DuplicatedResponses.aga
         case "Agamemnon!" => DuplicatedResponses.aga
         case "ctrl!" => "<ctrl> i'll bring the cyber lube"
-        case "dw!" =>
-          socket ! PrivMsg(channel, "smell").message
-          socket ! PrivMsg(channel, "yer").message
-          socket ! PrivMsg(channel, "WHIPS").message
-          ""
-        case "f34r!" => DuplicatedResponses.fear
-        case "loop!" => "loop!"
+        case "f34r!" => DuplicatedResponses.fear()
         case "fado!" => DuplicatedResponses.fado()
         case "fich!" => "<fado> fuelled by beer and spite."
         case "goibhniu!" => DuplicatedResponses.goibhniu()
@@ -84,7 +81,9 @@ class respondToHello extends Actor {
         case "/o/" => """\o/"""
         case _ => ""
       }
-      if(!responseString.isEmpty) socket ! PrivMsg(channel, responseString).message
+
+      if(responseString.nonEmpty)
+        mm.socketActor ! PrivMsg(r.responseDestination, responseString).message
   }
 }
 

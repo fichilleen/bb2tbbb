@@ -44,7 +44,7 @@ case class UserRegistration() extends {
 } with BotResponse
 
 object MessageBuilder {
-  def props() = Props(classOf[MessageBuilder])
+  def props(): Props = Props(classOf[MessageBuilder])
 }
 
 object JoinMessages {
@@ -59,8 +59,6 @@ object JoinMessages {
 }
 
 class MessageBuilder extends Actor {
-
-  // TODO: There's a lot of duplication in here
   override def receive: PartialFunction[Any, Unit] = {
     case a: ServerAuthRequest =>
       a.metaMessage.socketActor ! NickRegistration().message

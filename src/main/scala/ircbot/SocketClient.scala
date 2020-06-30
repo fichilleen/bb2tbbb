@@ -15,9 +15,7 @@ object SocketClient {
 
 // Largely copied from https://doc.akka.io/docs/akka/current/io-tcp.html?language=scala#using-tcp
 
-class SocketClient(remote: InetSocketAddress,
-                   listener: ActorRef)
-    extends Actor {
+class SocketClient(remote: InetSocketAddress, listener: ActorRef) extends Actor {
 
   import Tcp._
   import context.system

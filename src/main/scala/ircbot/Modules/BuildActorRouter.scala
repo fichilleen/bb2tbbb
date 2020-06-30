@@ -1,6 +1,6 @@
-package ircbot.customCommands
+package ircbot.Modules
 
-import akka.actor.{ActorContext, ActorRef, Props}
+import akka.actor.{ActorContext, Props}
 import akka.routing.{ActorRefRoutee, BroadcastRoutingLogic, Router}
 
 object BuildActorRouter extends {

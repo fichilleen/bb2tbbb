@@ -11,9 +11,11 @@ sealed case class MetaMessage(
     serverMessage: String
 )
 
-sealed case class MessageTime(dateClass: Date,
-                              epochMillis: Long,
-                              timeString: String)
+sealed case class MessageTime(
+  dateClass: Date,
+  epochMillis: Long,
+  timeString: String
+)
 
 object MessageTimeFactory {
   def apply(epoch: Option[Long] = None): MessageTime = {

@@ -2,7 +2,6 @@ package ircbot
 
 import akka.actor.ActorRef
 import akka.util.ByteString
-import com.typesafe.config.Config
 import ircbot.models.{MessageTimeFactory, MetaMessage}
 
 object DecorateMessage {
@@ -10,6 +9,6 @@ object DecorateMessage {
     // IRC always uses CR-LF line breaks, as defined in RFC-1459
     val terminatedStrings = serverResponse.utf8String.toString.split("\r\n")
     for (s <- terminatedStrings)
-      yield MessageTypeParser(MetaMessage(socketActor, MessageTimeFactory(), s), s)
+      yield IrcMessageParser(MetaMessage(socketActor, MessageTimeFactory(), s), s)
   }
 }

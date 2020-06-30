@@ -1,6 +1,6 @@
 package ircbot
 import akka.actor._
-import ircbot.customCommands.CommandRouters
+import ircbot.Modules.CommandRouters
 import ircbot.models.MetaMessage
 
 object Bot {

@@ -1,4 +1,4 @@
-package ircbot.customCommands.privMsgCommands.timeGames
+package ircbot.Modules.Commands.TimeGames
 
 import java.util.{Calendar, GregorianCalendar, TimeZone}
 

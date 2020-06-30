@@ -1,4 +1,4 @@
-package ircbot.customCommands.privMsgCommands.timeGames
+package ircbot.Modules.Commands.TimeGames
 
 import cats.data.OptionT
 import cats.implicits._

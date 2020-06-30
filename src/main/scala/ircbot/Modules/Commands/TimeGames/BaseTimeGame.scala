@@ -1,4 +1,4 @@
-package ircbot.customCommands.privMsgCommands.timeGames
+package ircbot.Modules.Commands.TimeGames
 
 import akka.Done
 import ircbot.models.{MessageTime, MessageTimeFactory}
@@ -97,6 +97,7 @@ abstract class BaseTimeGame {
   }
 
   protected def setResult(user: Luser, ts: Long): Future[Done] =
-    DbHandler.db.run(tableQuery += (user.nick, ts, user.host)).map(_ => Done)
+    DbHandler.db.run(tableQuery += ((user.nick, ts, user.host)))
+      .map(_ => Done)
 }
 

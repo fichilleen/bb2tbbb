@@ -1,16 +1,14 @@
-package ircbot.customCommands.privMsgCommands
+package ircbot.Modules.Commands
 
 import akka.actor.{Actor, Props}
-import ircbot.PrivMsg
-import ircbot.customCommands.privMsgCommands.timeGames._
-import ircbot.models.GetChanNickTimeMessage
+import ircbot.{PrivMsg, ReceivedMessage}
+import ircbot.Modules.Commands.TimeGames._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 object TimeGameActor {
-  def props() =
-    Props(classOf[TimeGameActor])
+  def props(): Props = Props(new TimeGameActor())
 }
 
 case object FlushLasts
@@ -25,31 +23,10 @@ class TimeGameActor extends Actor {
   val hatTrick = new HatTricks(first, leet, blaze)
   val last = new LastGame
 
-  /*
-  // TODO: This is a terrible hack for the scheduler, because it's not aware of
-  // the context of sockets and channels
-  var lastKnownSocket: Option[ActorRef] = Some(self)
-  val defaultChannel = "#wasteland"
-
-  val scheduler: QuartzSchedulerExtension = QuartzSchedulerExtension(context.system)
-
-  scheduler.schedule("BeforeMidnight", self, FlushLasts)
-   */
-
   override def receive: PartialFunction[Any, Unit] = {
 
-    /*
-    case FlushLasts =>
-      lastKnownSocket.foreach{ s =>
-        last.flush().map(_.foreach(
-            s ! PrivMsg(defaultChannel, _).message
-          )
-        )
-      }
-
-     */
-
-    case GetChanNickTimeMessage(socket, channel, luser, time, message) =>
+    case r@ReceivedMessage(mm, _, luser, message, _) =>
+      val time = mm.timeStamp
       val response: Future[Seq[String]] = message match {
           // TODO: These should be case insensitive regex
 
@@ -89,10 +66,12 @@ class TimeGameActor extends Actor {
         case "lastlast!" =>
           last.flush()
 
-        case _ =>
-          println("no match")
-          Future.successful(Seq.empty[String])
+        case _ => Future.successful(Seq.empty[String])
       }
-      response.map(_.foreach(socket ! PrivMsg(channel, _).message))
+      response.foreach(
+        _.foreach(
+          mm.socketActor ! PrivMsg(r.responseDestination, _).message
+        )
+      )
   }
 }
