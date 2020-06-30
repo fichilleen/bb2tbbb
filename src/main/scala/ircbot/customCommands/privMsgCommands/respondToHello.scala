@@ -14,9 +14,15 @@ private object DuplicatedResponses {
     quotes.toVector(Random.nextInt(quotes.size))
   }
 
-  val ack: String = "* ack_ imagines a blog post next week where the new guy talks about his trip to the dark web where a group of hackers coded a bot to respond with ascii cocks"
-
   val aga = "<Agamemnon> which of you drunk fuckers stuck ileostomy bags over the front of my house?"
+
+  def ack(): String = {
+    quoteSelection(Set(
+      "* ack_ imagines a blog post next week where the new guy talks about his trip to the dark web where a group of hackers coded a bot to respond with ascii cocks",
+      "2020-05-07 - Never forget the day ack posted his tesco refresh token and roo hijacked his session"
+      )
+    )
+  }
 
   def goibhniu(): String = {
     quoteSelection(Set(
@@ -55,8 +61,8 @@ class respondToHello extends Actor {
 
         // Nick specific japes
         case "420thingyit!" => "thingy today was thingy! It's always thingy!"
-        case "ack_!" => DuplicatedResponses.ack
-        case "ack!" => DuplicatedResponses.ack
+        case "ack_!" => DuplicatedResponses.ack()
+        case "ack!" => DuplicatedResponses.ack()
         case "aga!" => DuplicatedResponses.aga
         case "Agamemnon!" => DuplicatedResponses.aga
         case "ctrl!" => "<ctrl> i'll bring the cyber lube"
